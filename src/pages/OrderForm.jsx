@@ -33,8 +33,8 @@ import ProductIcon from "../components/art/ProductIcon";
 import "./OrderForm.css";
 
 const CONFIG = {
-  FORMSPREE_ENDPOINT: "https://formspree.io/f/YOUR_FORM_ID",
-  STRIPE_PAYMENT_LINK: "https://buy.stripe.com/YOUR_PAYMENT_LINK",
+  FORMSPREE_ENDPOINT: import.meta.env.VITE_FORMSPREE_ENDPOINT,
+  STRIPE_PAYMENT_LINK: import.meta.env.VITE_STRIPE_PAYMENT_LINK,
 };
 
 
