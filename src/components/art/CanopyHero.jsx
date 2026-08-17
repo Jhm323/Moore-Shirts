@@ -1,5 +1,6 @@
 import React from "react";
 import { TOKENS } from "../../theme/tokens";
+import "./CanopyHero.css";
 
 /* ---------- canopy / sky hero art (original illustration, not a
    reproduction of any photo) ---------- */
@@ -15,7 +16,7 @@ function Leaf({ x, y, rot, scale = 1, color = TOKENS.leaf, rim = TOKENS.gold }) 
 
 export default function CanopyHero({ height = 360 }) {
   return (
-    <svg viewBox="0 0 800 500" width="100%" height={height} style={{ display: "block" }} preserveAspectRatio="xMidYMid slice">
+    <svg viewBox="0 0 800 500" width="100%" height={height} className="canopy-hero" preserveAspectRatio="xMidYMid slice">
       <defs>
         <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={TOKENS.skyDeep} />

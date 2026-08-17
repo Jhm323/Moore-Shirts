@@ -1,0 +1,57 @@
+.shop {
+  padding: 40px 20px 70px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.shop__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 32px;
+  margin-bottom: 8px;
+  color: var(--color-leaf);
+}
+
+.shop__subtitle {
+  margin-bottom: 26px;
+  opacity: 0.75;
+}
+
+.shop__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 22px;
+}
+
+.shop__card {
+  padding: 18px;
+}
+
+.shop__card-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.shop__like-btn {
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.shop__card-media {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 18px;
+}
+
+.shop__card-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 18px;
+  color: var(--color-leaf);
+  margin-bottom: 4px;
+}
+
+.shop__order-btn {
+  width: 100%;
+  margin-top: 10px;
+}

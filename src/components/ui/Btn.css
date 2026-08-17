@@ -1,0 +1,35 @@
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 13px 26px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.08s ease, opacity 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn--primary {
+  background: var(--color-leaf);
+  color: var(--color-cream);
+}
+
+.btn--accent {
+  background: var(--color-gold);
+  color: var(--color-ink);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-leaf);
+  border: 1.5px solid var(--color-leaf);
+}
+
+.btn--disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

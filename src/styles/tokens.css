@@ -1,0 +1,15 @@
+:root {
+  --color-sky: #BFE0EA;
+  --color-sky-deep: #6FA6BE;
+  --color-leaf: #1F3D2E;
+  --color-leaf-deep: #132A20;
+  --color-gold: #D9A94E;
+  --color-cream: #F6F1E4;
+  --color-cream-dim: #EAE2CC;
+  --color-ink: #25332A;
+  --color-grey: #9FAE9C;
+
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}

@@ -1,14 +1,11 @@
 import { useState, useEffect } from "react";
 import { getJSON, setJSON } from "../lib/storage";
 
-export function useLiked(user, showToast) {
+export function useLiked(user) {
   const [liked, setLiked] = useState([]);
 
   useEffect(() => {
-    if (!user) {
-      setLiked([]);
-      return;
-    }
+    if (!user) { setLiked([]); return; }
     (async () => {
       const l = await getJSON(`liked:${user.email}`);
       setLiked(l || []);
@@ -16,10 +13,6 @@ export function useLiked(user, showToast) {
   }, [user]);
 
   async function toggleLike(productId) {
-    if (!user) {
-      showToast("Log in to save likes");
-      return;
-    }
     const next = liked.includes(productId) ? liked.filter((id) => id !== productId) : [...liked, productId];
     setLiked(next);
     await setJSON(`liked:${user.email}`, next);

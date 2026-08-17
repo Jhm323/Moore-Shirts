@@ -1,0 +1,57 @@
+.auth-panel {
+  max-width: 420px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+.auth-panel__card {
+  padding: 28px;
+}
+
+.auth-panel__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  margin-top: 0;
+  color: var(--color-leaf);
+}
+
+.auth-panel__field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.auth-panel__field-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  color: var(--color-leaf);
+}
+
+.auth-panel__field-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border: 1.5px solid var(--color-grey);
+  border-radius: 14px;
+  background: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+
+.auth-panel__error {
+  color: #B5482F;
+  font-size: 13px;
+}
+
+.auth-panel__toggle {
+  font-size: 13px;
+  margin-top: 14px;
+}
+
+.auth-panel__toggle-link {
+  cursor: pointer;
+  text-decoration: underline;
+}

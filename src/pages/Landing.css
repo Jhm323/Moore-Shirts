@@ -1,0 +1,130 @@
+.landing__hero {
+  position: relative;
+  max-width: 1200px;
+  margin: 24px auto 0;
+  padding: 0 20px;
+}
+
+.landing__hero-card {
+  overflow: hidden;
+  position: relative;
+}
+
+.landing__hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.landing__hero-card-inner {
+  padding: 40px 44px;
+  max-width: 560px;
+  text-align: center;
+}
+
+.landing__hero-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(30px, 4.4vw, 48px);
+  line-height: 1.08;
+  margin: 18px 0 14px;
+  color: var(--color-leaf);
+}
+
+.landing__hero-copy {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  color: var(--color-ink);
+}
+
+.landing__collection {
+  padding: 56px 20px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.landing__collection-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 26px;
+  margin-bottom: 20px;
+  color: var(--color-leaf);
+}
+
+.landing__collection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 18px;
+}
+
+.landing__collection-item {
+  cursor: pointer;
+}
+
+.landing__collection-item-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  margin-top: 8px;
+  text-align: center;
+  color: var(--color-leaf);
+}
+
+.landing__collection-footer {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.landing__causes {
+  background: var(--color-leaf);
+  color: var(--color-cream);
+  padding: 60px 20px;
+  border-radius: 36px 36px 0 0;
+}
+
+.landing__causes-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.landing__causes-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 26px;
+  margin-bottom: 22px;
+}
+
+.landing__causes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.landing__cause-card {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.landing__cause-dot {
+  width: 14px;
+  height: 14px;
+  background: var(--cause-color);
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.landing__cause-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.landing__cause-blurb {
+  font-size: 14px;
+  opacity: 0.8;
+}

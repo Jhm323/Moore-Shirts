@@ -1,78 +1,58 @@
 import React from "react";
-import { TOKENS } from "../theme/tokens";
 import { CAUSES } from "../data/causes";
+import { PRODUCTS } from "../data/products";
 import Card from "../components/ui/Card";
 import Tag from "../components/ui/Tag";
 import Btn from "../components/ui/Btn";
 import CanopyHero from "../components/art/CanopyHero";
-import { ProductGrid } from "./Shop";
+import PosterTile from "../components/art/PosterTile";
+import "./Landing.css";
 
-/* ---------------- Landing ---------------- */
-export default function Landing({ onShop, onProduct, liked, toggleLike }) {
+export default function Landing({ onOrder, onShop }) {
   return (
     <div>
-      <section style={{ position: "relative", maxWidth: 1200, margin: "24px auto 0", padding: "0 20px" }}>
-        <Card style={{ overflow: "hidden", position: "relative" }} bg={TOKENS.sky}>
+      <section className="landing__hero">
+        <Card className="landing__hero-card card--sky">
           <CanopyHero height={420} />
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 24,
-            }}
-          >
-            <Card style={{ padding: "40px 44px", maxWidth: 560, textAlign: "center" }} bg="rgba(246,241,228,0.92)">
+          <div className="landing__hero-overlay">
+            <Card className="landing__hero-card-inner card--overlay">
               <Tag>10% of every order funds a cause you pick</Tag>
-              <h1
-                style={{
-                  fontFamily: "'Fraunces', serif",
-                  fontWeight: 500,
-                  fontSize: "clamp(30px, 4.4vw, 48px)",
-                  lineHeight: 1.08,
-                  margin: "18px 0 14px",
-                  color: TOKENS.leaf,
-                }}
-              >
-                Portraits of the wild,
-                <br />
-                worn with purpose.
+              <h1 className="landing__hero-title">
+                Portraits of the wild,<br />worn with purpose.
               </h1>
-              <p style={{ fontSize: 16, lineHeight: 1.6, marginBottom: 24, color: TOKENS.ink }}>
-                Painterly wildlife prints on heavyweight organic cotton. Every order routes real dollars to the
-                cause that matters to you.
+              <p className="landing__hero-copy">
+                Painterly wildlife prints, printed to order. No batches, no inventory.
               </p>
-              <Btn variant="primary" onClick={onShop}>
-                Shop the collection
-              </Btn>
+              <Btn variant="primary" onClick={onShop}>Shop the collection</Btn>
             </Card>
           </div>
         </Card>
       </section>
 
-      <section style={{ padding: "56px 20px 60px", maxWidth: 1200, margin: "0 auto" }}>
-        <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 500, fontSize: 26, marginBottom: 20, color: TOKENS.leaf }}>
-          The collection
-        </h2>
-        <ProductGrid onProduct={onProduct} liked={liked} toggleLike={toggleLike} limit={4} />
-        <div style={{ marginTop: 24, textAlign: "center" }}>
-          <Btn variant="ghost" onClick={onShop}>
-            View all designs
-          </Btn>
+      <section className="landing__collection">
+        <h2 className="landing__collection-title">The collection</h2>
+        <div className="landing__collection-grid">
+          {PRODUCTS.slice(0, 4).map((p) => (
+            <div key={p.id} onClick={() => onOrder(p.id)} className="landing__collection-item">
+              <PosterTile product={p} size={90} />
+              <div className="landing__collection-item-name">{p.name}</div>
+            </div>
+          ))}
+        </div>
+        <div className="landing__collection-footer">
+          <Btn variant="ghost" onClick={onShop}>View all designs</Btn>
         </div>
       </section>
 
-      <section style={{ background: TOKENS.leaf, color: TOKENS.cream, padding: "60px 20px", borderRadius: "36px 36px 0 0" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 500, fontSize: 26, marginBottom: 22 }}>Where your 10% can go</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+      <section className="landing__causes">
+        <div className="landing__causes-inner">
+          <h2 className="landing__causes-title">Where your 10% can go</h2>
+          <div className="landing__causes-grid">
             {CAUSES.map((c) => (
-              <div key={c.id} style={{ background: "rgba(255,255,255,0.06)", borderRadius: 18, padding: 18 }}>
-                <div style={{ width: 14, height: 14, background: c.color, borderRadius: "50%", marginBottom: 10 }} />
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, textTransform: "uppercase", marginBottom: 6 }}>{c.name}</div>
-                <div style={{ fontSize: 14, opacity: 0.8 }}>{c.blurb}</div>
+              <div key={c.id} className="landing__cause-card" style={{ "--cause-color": c.color }}>
+                <div className="landing__cause-dot" />
+                <div className="landing__cause-name">{c.name}</div>
+                <div className="landing__cause-blurb">{c.blurb}</div>
               </div>
             ))}
           </div>

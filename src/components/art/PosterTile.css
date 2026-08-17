@@ -1,0 +1,13 @@
+.poster-tile {
+  background: var(--tile-bg);
+  color: var(--tile-fg);
+  width: 100%;
+  height: calc(var(--tile-size) + 20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  padding: 12px;
+  text-align: center;
+  overflow: hidden;
+}

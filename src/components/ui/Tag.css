@@ -1,0 +1,11 @@
+.tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: var(--color-gold);
+  color: var(--color-ink);
+  padding: 5px 12px;
+  border-radius: 999px;
+  display: inline-block;
+}
