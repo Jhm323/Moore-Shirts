@@ -1,0 +1,1834 @@
+// File: ./README.md
+// ---start---
+# Common Thread
+
+A t-shirt shop prototype: a single naturalist wildlife product line, with 10% of every order routed to a cause the buyer picks at checkout. Built as a React component tree with no backend — accounts, likes, and order history persist through a `window.storage` key/value API, and payment is entirely mocked (no real card processing).
+
+## Status
+
+This is a prototype UI only. There is currently no `package.json`, bundler, or dev server in this repo — `src/` is a plain React component tree meant to be dropped into a host environment that provides `React` and a `window.storage.get/set` implementation. If you want to run it standalone, it'll need a bundler setup (Vite, CRA, etc.) added first.
+
+## Structure
+
+```
+src/
+├── App.jsx                  # top-level state + view routing
+├── theme/tokens.js          # color tokens (TOKENS) and font import string (FONTS)
+├── data/
+│   ├── products.js          # PRODUCTS catalog, SIZES
+│   └── causes.js            # CAUSES buyers can route their 10% to
+├── lib/storage.js           # getJSON / setJSON wrappers around window.storage
+├── components/
+│   ├── ui/                  # Card, Btn, Tag, Input — shared visual atoms
+│   ├── art/                 # hand-drawn SVG illustrations (hero art, product icons)
+│   ├── layout/               # Header, Footer
+│   └── cart/                # CartDrawer, CauseMeter
+├── pages/
+│   ├── Landing.jsx           # hero + product teaser + cause list
+│   ├── Shop.jsx               # full catalog grid (ProductGrid lives here)
+│   ├── ProductDetail.jsx
+│   ├── Checkout.jsx           # guest/member choice → shipping → cause → payment
+│   ├── Profile.jsx            # account settings, liked items, order history
+│   └── auth/                  # AuthScreen (standalone) + AuthForm (shared with checkout)
+└── hooks/
+    ├── useCart.js            # cart array, add/remove/update qty, totals
+    ├── useAuth.js            # user session, login/logout, purchase history
+    └── useLiked.js           # liked product ids, loaded per-user from storage
+```
+
+## How it works
+
+- **Accounts & sessions** — Signing up writes `account:<email>` to storage with a password and a `twoFA` flag. Logging in re-reads that record. There's no real auth backend; passwords are stored as plain JSON.
+- **Mock 2FA** — If an account has 2FA enabled, login generates a random 6-digit code and displays it directly in the UI (there's no email to send it to) instead of gating on a real out-of-band channel.
+- **Likes & orders** — `liked:<email>` and `purchases:<email>` are loaded whenever the signed-in user changes, and rewritten on every toggle/purchase. Guests can browse and check out but can't like items or see order history.
+- **Cause routing** — At checkout, the buyer picks one of `CAUSES` from `data/causes.js`. The `CauseMeter` component visualizes 10% of the order total going to that cause; the confirmation screen restates the dollar amount.
+- **Payment** — The payment step accepts any non-empty card number/expiry/CVC and always "succeeds." No card processor is called.
+
+## Notable non-obvious behavior
+
+- `ProductGrid` (defined in `pages/Shop.jsx`) is reused by `Landing.jsx` for the 4-item teaser grid — it's exported from `Shop.jsx` rather than duplicated.
+- `AuthForm` is shared between the standalone `/auth` screen and the inline "log in or create an account" step in checkout, so login/signup logic only exists in one place.
+- Cart state, session/purchase state, and liked-items state each live in their own hook (`useCart`, `useAuth`, `useLiked`); `App.jsx` composes them rather than owning that state directly.
+
+// ---end: ./README.md---
+
+// File: ./index.html
+// ---start---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Common Thread</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+// ---end: ./index.html---
+
+// File: ./package.json
+// ---start---
+{
+  "name": "common-thread",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "playwright": "^1.62.1",
+    "vite": "^5.4.11"
+  }
+}
+
+// ---end: ./package.json---
+
+// File: ./src/App.css
+// ---start---
+.app {
+  min-height: 100vh;
+  background: var(--color-cream);
+}
+
+// ---end: ./src/App.css---
+
+// File: ./src/App.jsx
+// ---start---
+import { useState } from "react";
+import { FONTS } from "./theme/tokens";
+import { useAuth } from "./hooks/useAuth";
+import { useLiked } from "./hooks/useLiked";
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
+import Landing from "./pages/Landing";
+import Shop from "./pages/Shop";
+import OrderForm from "./pages/OrderForm";
+import AuthPanel from "./pages/AuthPanel";
+import "./App.css";
+
+export default function App() {
+  const [view, setView] = useState("landing");
+  const [presetDesignId, setPresetDesignId] = useState(null);
+  const auth = useAuth();
+  const { liked, toggleLike } = useLiked(auth.user);
+
+  function goOrder(id) {
+    setPresetDesignId(id);
+    setView("order");
+  }
+
+  return (
+    <div className="app">
+      <style>{FONTS}</style>
+      <Header onLogoClick={() => setView("landing")} onShopClick={() => setView("shop")} user={auth.user} onAuthClick={() => setView("auth")} onSignOut={auth.signOut} />
+      {view === "landing" && <Landing onOrder={goOrder} onShop={() => setView("shop")} />}
+      {view === "shop" && <Shop liked={liked} toggleLike={toggleLike} onOrder={goOrder} user={auth.user} onRequireSignIn={() => setView("auth")} />}
+      {view === "order" && <OrderForm initialDesignId={presetDesignId} onBack={() => setView("shop")} />}
+      {view === "auth" && <AuthPanel auth={auth} onDone={() => setView("shop")} />}
+      <Footer />
+    </div>
+  );
+}
+
+// ---end: ./src/App.jsx---
+
+// File: ./src/components/art/CanopyHero.css
+// ---start---
+.canopy-hero {
+  display: block;
+}
+
+// ---end: ./src/components/art/CanopyHero.css---
+
+// File: ./src/components/art/CanopyHero.jsx
+// ---start---
+import React from "react";
+import { TOKENS } from "../../theme/tokens";
+import "./CanopyHero.css";
+
+/* ---------- canopy / sky hero art (original illustration, not a
+   reproduction of any photo) ---------- */
+function Leaf({ x, y, rot, scale = 1, color = TOKENS.leaf, rim = TOKENS.gold }) {
+  return (
+    <g transform={`translate(${x} ${y}) rotate(${rot}) scale(${scale})`}>
+      <path d="M0 0 C 34 -20 88 -18 130 0 C 88 18 34 20 0 0 Z" fill={color} />
+      <path d="M2 0 C 34 -17 84 -15 122 0" fill="none" stroke={rim} strokeWidth="2" strokeLinecap="round" opacity="0.55" />
+      <path d="M8 0 L118 0" stroke={rim} strokeWidth="1" opacity="0.4" />
+    </g>
+  );
+}
+
+export default function CanopyHero({ height = 360 }) {
+  return (
+    <svg viewBox="0 0 800 500" width="100%" height={height} className="canopy-hero" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={TOKENS.skyDeep} />
+          <stop offset="55%" stopColor={TOKENS.sky} />
+          <stop offset="100%" stopColor="#EFE6C8" />
+        </linearGradient>
+        <radialGradient id="glow" cx="50%" cy="42%" r="45%">
+          <stop offset="0%" stopColor="#FFF6DC" stopOpacity="0.9" />
+          <stop offset="100%" stopColor="#FFF6DC" stopOpacity="0" />
+        </radialGradient>
+        <filter id="soft"><feGaussianBlur stdDeviation="6" /></filter>
+      </defs>
+      <rect width="800" height="500" fill="url(#skyGrad)" />
+      <ellipse cx="420" cy="190" rx="230" ry="140" fill="url(#glow)" />
+      <ellipse cx="180" cy="90" rx="70" ry="20" fill="#FFFFFF" opacity="0.35" filter="url(#soft)" />
+      <ellipse cx="560" cy="130" rx="90" ry="24" fill="#FFFFFF" opacity="0.3" filter="url(#soft)" />
+
+      {/* corner leaves framing inward, like looking straight up through a canopy */}
+      <Leaf x={-30} y={-20} rot={18} scale={2.1} color={TOKENS.leafDeep} />
+      <Leaf x={10} y={40} rot={40} scale={1.7} color={TOKENS.leaf} />
+      <Leaf x={60} y={110} rot={62} scale={1.3} color={TOKENS.leaf} />
+
+      <Leaf x={830} y={-10} rot={162} scale={2.1} color={TOKENS.leafDeep} />
+      <Leaf x={790} y={50} rot={140} scale={1.7} color={TOKENS.leaf} />
+      <Leaf x={740} y={120} rot={118} scale={1.3} color={TOKENS.leaf} />
+
+      <Leaf x={-20} y={520} rot={-18} scale={2.1} color={TOKENS.leafDeep} />
+      <Leaf x={30} y={450} rot={-40} scale={1.7} color={TOKENS.leaf} />
+      <Leaf x={90} y={390} rot={-62} scale={1.3} color={TOKENS.leaf} />
+
+      <Leaf x={820} y={520} rot={198} scale={2.1} color={TOKENS.leafDeep} />
+      <Leaf x={770} y={450} rot={220} scale={1.7} color={TOKENS.leaf} />
+      <Leaf x={710} y={390} rot={242} scale={1.3} color={TOKENS.leaf} />
+
+      <Leaf x={400} y={-30} rot={92} scale={1.9} color={TOKENS.leafDeep} />
+      <Leaf x={400} y={530} rot={-88} scale={1.9} color={TOKENS.leafDeep} />
+    </svg>
+  );
+}
+
+// ---end: ./src/components/art/CanopyHero.jsx---
+
+// File: ./src/components/art/CanopyIcon.jsx
+// ---start---
+import React from "react";
+import { TOKENS } from "../../theme/tokens";
+
+/* small canopy motif used as a product tile icon */
+export default function CanopyIcon({ size = 120, color = TOKENS.leaf }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100">
+      <circle cx="50" cy="46" r="44" fill={TOKENS.sky} />
+      <circle cx="50" cy="42" r="16" fill="#FFF6DC" opacity="0.7" />
+      <g fill={color}>
+        <path d="M2 10 C 20 0 40 2 54 14 C 40 20 20 20 2 10 Z" />
+        <path d="M98 10 C 80 0 60 2 46 14 C 60 20 80 20 98 10 Z" />
+        <path d="M2 90 C 20 100 40 98 54 86 C 40 80 20 80 2 90 Z" />
+        <path d="M98 90 C 80 100 60 98 46 86 C 60 80 80 80 98 90 Z" />
+      </g>
+    </svg>
+  );
+}
+
+// ---end: ./src/components/art/CanopyIcon.jsx---
+
+// File: ./src/components/art/PosterTile.css
+// ---start---
+.poster-tile {
+  background: var(--tile-bg);
+  color: var(--tile-fg);
+  width: 100%;
+  height: calc(var(--tile-size) + 20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  padding: 12px;
+  text-align: center;
+  overflow: hidden;
+}
+
+// ---end: ./src/components/art/PosterTile.css---
+
+// File: ./src/components/art/PosterTile.jsx
+// ---start---
+import React from "react";
+import { TOKENS } from "../../theme/tokens";
+import CanopyIcon from "./CanopyIcon";
+import ProductIcon from "./ProductIcon";
+import "./PosterTile.css";
+
+/* A tile that shows a product's icon, or the canopy motif for the flagship print */
+export default function PosterTile({ product, size = 120 }) {
+  const bg = product.tileBg || TOKENS.cream;
+  const fg = product.tileFg || TOKENS.ink;
+  return (
+    <div
+      className="poster-tile"
+      style={{ "--tile-bg": bg, "--tile-fg": fg, "--tile-size": `${size}px` }}
+    >
+      {product.icon === "canopy" ? <CanopyIcon size={size} color={fg} /> : <ProductIcon icon={product.icon} size={size} color={fg} />}
+    </div>
+  );
+}
+
+// ---end: ./src/components/art/PosterTile.jsx---
+
+// File: ./src/components/art/ProductIcon.jsx
+// ---start---
+import React from "react";
+import { TOKENS } from "../../theme/tokens";
+
+/* ---------- icon tiles (original line-art, not photo reproductions) ---------- */
+export default function ProductIcon({ icon, size = 120, color }) {
+  const stroke = color || TOKENS.ink;
+  const common = { width: size, height: size, viewBox: "0 0 100 100", fill: "none", stroke, strokeWidth: 3, strokeLinecap: "round", strokeLinejoin: "round" };
+  switch (icon) {
+    case "owl":
+      return (
+        <svg {...common}>
+          <path d="M30 30 Q20 15 26 8 Q34 14 36 24" />
+          <path d="M70 30 Q80 15 74 8 Q66 14 64 24" />
+          <ellipse cx="50" cy="50" rx="26" ry="30" />
+          <circle cx="38" cy="46" r="9" />
+          <circle cx="62" cy="46" r="9" />
+          <circle cx="38" cy="46" r="2.5" fill={stroke} stroke="none" />
+          <circle cx="62" cy="46" r="2.5" fill={stroke} stroke="none" />
+          <path d="M50 54 L45 64 L55 64 Z" />
+        </svg>
+      );
+    case "tiger":
+      return (
+        <svg {...common}>
+          <path d="M28 25 L38 40 M72 25 L62 40" />
+          <ellipse cx="50" cy="55" rx="30" ry="28" />
+          <path d="M32 45 Q40 48 34 55 M68 45 Q60 48 66 55 M30 60 Q40 60 36 68 M70 60 Q60 60 64 68" />
+          <circle cx="40" cy="52" r="2" fill={stroke} stroke="none" />
+          <circle cx="60" cy="52" r="2" fill={stroke} stroke="none" />
+          <path d="M45 62 L50 66 L55 62 M50 66 V72" />
+        </svg>
+      );
+    case "panther":
+      return (
+        <svg {...common}>
+          <path d="M28 34 L36 22 M72 34 L64 22" />
+          <ellipse cx="50" cy="52" rx="26" ry="30" />
+          <circle cx="40" cy="48" r="2.5" fill={stroke} stroke="none" />
+          <circle cx="60" cy="48" r="2.5" fill={stroke} stroke="none" />
+          <path d="M45 58 L50 62 L55 58 M50 62 V68" />
+        </svg>
+      );
+    case "panthermoon":
+      return (
+        <svg {...common}>
+          <path d="M68 20 A12 12 0 1 0 68 40 A9 9 0 1 1 68 20 Z" fill={stroke} stroke="none" />
+          <path d="M28 40 L36 28 M64 42 L58 30" />
+          <ellipse cx="46" cy="58" rx="24" ry="28" />
+          <circle cx="38" cy="54" r="2.3" fill={stroke} stroke="none" />
+          <circle cx="54" cy="54" r="2.3" fill={stroke} stroke="none" />
+        </svg>
+      );
+    case "cardcat":
+      return (
+        <svg {...common}>
+          <rect x="15" y="10" width="70" height="80" rx="10" />
+          <path d="M22 18 L27 26 L22 34 M78 18 L73 26 L78 34" fill={stroke} stroke="none" />
+          <path d="M32 45 L38 33 M68 45 L62 33" />
+          <ellipse cx="50" cy="60" rx="20" ry="24" />
+          <circle cx="43" cy="56" r="2" fill={stroke} stroke="none" />
+          <circle cx="57" cy="56" r="2" fill={stroke} stroke="none" />
+        </svg>
+      );
+    case "coyote":
+      return (
+        <svg {...common}>
+          <path d="M50 15 L40 32 L60 32 Z" />
+          <path d="M50 32 Q30 35 28 55 Q28 75 50 82 Q72 75 72 55 Q70 35 50 32 Z" />
+          <circle cx="42" cy="52" r="2" fill={stroke} stroke="none" />
+          <circle cx="58" cy="52" r="2" fill={stroke} stroke="none" />
+          <path d="M46 62 L54 62 L50 68 Z" fill={stroke} stroke="none" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
+// ---end: ./src/components/art/ProductIcon.jsx---
+
+// File: ./src/components/layout/Footer.css
+// ---start---
+.footer {
+  padding: 26px 28px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+  opacity: 0.6;
+}
+
+// ---end: ./src/components/layout/Footer.css---
+
+// File: ./src/components/layout/Footer.jsx
+// ---start---
+import React from "react";
+import "./Footer.css";
+
+export default function Footer() {
+  return (
+    <footer className="footer">
+      COMMON THREAD {"—"} prototype build. Payments are mocked; no real charges occur.
+    </footer>
+  );
+}
+
+// ---end: ./src/components/layout/Footer.jsx---
+
+// File: ./src/components/layout/Header.css
+// ---start---
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  position: sticky;
+  top: 0;
+  background: rgba(246, 241, 228, 0.95);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(37, 51, 42, 0.06);
+}
+
+.header__logo {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 21px;
+  cursor: pointer;
+  color: var(--color-leaf);
+}
+
+.header__nav {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.header__link {
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.header__signin {
+  cursor: pointer;
+  background: var(--color-leaf);
+  color: var(--color-cream);
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+// ---end: ./src/components/layout/Header.css---
+
+// File: ./src/components/layout/Header.jsx
+// ---start---
+import React from "react";
+import "./Header.css";
+
+export default function Header({ onLogoClick, onShopClick, user, onAuthClick, onSignOut }) {
+  return (
+    <header className="header">
+      <div onClick={onLogoClick} className="header__logo">
+        Common Thread
+      </div>
+      <nav className="header__nav">
+        <span className="header__link" onClick={onShopClick}>Shop</span>
+        {user ? (
+          <span className="header__link" onClick={onSignOut} title={user.email}>Sign out</span>
+        ) : (
+          <span onClick={onAuthClick} className="header__signin">
+            Sign in
+          </span>
+        )}
+      </nav>
+    </header>
+  );
+}
+
+// ---end: ./src/components/layout/Header.jsx---
+
+// File: ./src/components/ui/Btn.css
+// ---start---
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 13px 26px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.08s ease, opacity 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn--primary {
+  background: var(--color-leaf);
+  color: var(--color-cream);
+}
+
+.btn--accent {
+  background: var(--color-gold);
+  color: var(--color-ink);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-leaf);
+  border: 1.5px solid var(--color-leaf);
+}
+
+.btn--disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+// ---end: ./src/components/ui/Btn.css---
+
+// File: ./src/components/ui/Btn.jsx
+// ---start---
+import React from "react";
+import "./Btn.css";
+
+export default function Btn({ children, onClick, variant = "primary", className, disabled, type = "button" }) {
+  return (
+    <button
+      type={type}
+      disabled={disabled}
+      onClick={onClick}
+      className={`btn btn--${variant} ${disabled ? "btn--disabled" : ""} ${className || ""}`.trim()}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ---end: ./src/components/ui/Btn.jsx---
+
+// File: ./src/components/ui/Card.css
+// ---start---
+.card {
+  background: var(--color-cream);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(37, 51, 42, 0.12);
+}
+
+.card--sky {
+  background: var(--color-sky);
+}
+
+.card--overlay {
+  background: rgba(246, 241, 228, 0.92);
+}
+
+// ---end: ./src/components/ui/Card.css---
+
+// File: ./src/components/ui/Card.jsx
+// ---start---
+import React from "react";
+import "./Card.css";
+
+export default function Card({ children, className }) {
+  return <div className={`card ${className || ""}`.trim()}>{children}</div>;
+}
+
+// ---end: ./src/components/ui/Card.jsx---
+
+// File: ./src/components/ui/Input.css
+// ---start---
+.input {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.input__label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  color: var(--color-leaf);
+}
+
+.input__control {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border: 1.5px solid var(--color-grey);
+  border-radius: 14px;
+  background: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+
+// ---end: ./src/components/ui/Input.css---
+
+// File: ./src/components/ui/Input.jsx
+// ---start---
+import React from "react";
+import "./Input.css";
+
+export default function Input({ label, ...props }) {
+  return (
+    <label className="input">
+      <div className="input__label">{label}</div>
+      <input {...props} className="input__control" />
+    </label>
+  );
+}
+
+// ---end: ./src/components/ui/Input.jsx---
+
+// File: ./src/components/ui/Tag.css
+// ---start---
+.tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: var(--color-gold);
+  color: var(--color-ink);
+  padding: 5px 12px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+// ---end: ./src/components/ui/Tag.css---
+
+// File: ./src/components/ui/Tag.jsx
+// ---start---
+import React from "react";
+import "./Tag.css";
+
+export default function Tag({ children }) {
+  return <span className="tag">{children}</span>;
+}
+
+// ---end: ./src/components/ui/Tag.jsx---
+
+// File: ./src/data/causes.js
+// ---start---
+import { TOKENS } from "../theme/tokens";
+
+export const CAUSES = [
+  { id: "refugee", name: "Refugee Support", color: "#C98A4B", blurb: "Emergency shelter, legal aid, and resettlement support." },
+  { id: "climate", name: "Climate Justice", color: "#2F6E4F", blurb: "Frontline communities fighting environmental harm." },
+  { id: "equity", name: "Racial Equity", color: "#3A6B8A", blurb: "Community bail funds and organizing groups." },
+  { id: "mutualaid", name: "Mutual Aid Networks", color: TOKENS.gold, blurb: "Neighbor-to-neighbor emergency assistance." },
+  { id: "health", name: "Global Health Access", color: "#7A5C74", blurb: "Clinics and medicine in under-resourced regions." },
+  { id: "indigenous", name: "Indigenous Rights", color: "#8A5A2B", blurb: "Land defense and sovereignty campaigns." },
+];
+
+// ---end: ./src/data/causes.js---
+
+// File: ./src/data/products.js
+// ---start---
+import { TOKENS } from "../theme/tokens";
+
+export const PRODUCTS = [
+  { id: "w1", name: "Canopy Sky", price: 34, icon: "canopy", tileBg: TOKENS.sky, tileFg: TOKENS.leaf, blurb: "Looking up through leaves to open sky. Our signature print.", tag: "Best seller" },
+  { id: "w2", name: "Night Watch", price: 34, icon: "owl", tileBg: "#16291F", tileFg: "#E8D9B8", blurb: "Barn owl portrait, moody forest wash." },
+  { id: "w3", name: "Ember Tiger", price: 36, icon: "tiger", tileBg: "#3A2412", tileFg: TOKENS.gold, blurb: "Tiger portrait rendered in warm amber tones." },
+  { id: "w4", name: "Panthère Noire", price: 36, icon: "panthermoon", tileBg: "#16232E", tileFg: "#8FB8D6", blurb: "Panther beneath a crescent moon, deep night blue." },
+  { id: "w5", name: "Queen of Diamonds", price: 34, icon: "cardcat", tileBg: TOKENS.cream, tileFg: TOKENS.leaf, blurb: "Leopard portrait set inside a playing-card frame.", tag: "New" },
+  { id: "w6", name: "Sage Focus", price: 32, icon: "panther", tileBg: "#CBD6BE", tileFg: TOKENS.leaf, blurb: "Quiet panther portrait, single-word poster type." },
+  { id: "w7", name: "Coyote Spirit", price: 32, icon: "coyote", tileBg: "#E4D2AC", tileFg: "#4A3A1E", blurb: "Desert coyote line art under a warm dusk sky." },
+];
+
+export const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+
+// ---end: ./src/data/products.js---
+
+// File: ./src/hooks/useAuth.js
+// ---start---
+import { useState, useEffect } from "react";
+import { getJSON, setJSON } from "../lib/storage";
+
+export function useAuth() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const session = await getJSON("session");
+      if (session?.email) setUser({ email: session.email });
+    })();
+  }, []);
+
+  async function signUp(email, password) {
+    const existing = await getJSON(`account:${email}`);
+    if (existing) return { error: "An account with that email already exists — sign in instead." };
+    await setJSON(`account:${email}`, { email, password });
+    await setJSON("session", { email });
+    setUser({ email });
+    return {};
+  }
+
+  async function signIn(email, password) {
+    const account = await getJSON(`account:${email}`);
+    if (!account || account.password !== password) return { error: "No matching account, or wrong password." };
+    await setJSON("session", { email });
+    setUser({ email });
+    return {};
+  }
+
+  async function signOut() {
+    await setJSON("session", null);
+    setUser(null);
+  }
+
+  return { user, signUp, signIn, signOut };
+}
+
+// ---end: ./src/hooks/useAuth.js---
+
+// File: ./src/hooks/useLiked.js
+// ---start---
+import { useState, useEffect } from "react";
+import { getJSON, setJSON } from "../lib/storage";
+
+export function useLiked(user) {
+  const [liked, setLiked] = useState([]);
+
+  useEffect(() => {
+    if (!user) { setLiked([]); return; }
+    (async () => {
+      const l = await getJSON(`liked:${user.email}`);
+      setLiked(l || []);
+    })();
+  }, [user]);
+
+  async function toggleLike(productId) {
+    const next = liked.includes(productId) ? liked.filter((id) => id !== productId) : [...liked, productId];
+    setLiked(next);
+    await setJSON(`liked:${user.email}`, next);
+  }
+
+  return { liked, toggleLike };
+}
+
+// ---end: ./src/hooks/useLiked.js---
+
+// File: ./src/lib/storage.js
+// ---start---
+export async function getJSON(key, shared = false) {
+  try {
+    const r = await window.storage.get(key, shared);
+    return r ? JSON.parse(r.value) : null;
+  } catch {
+    return null;
+  }
+}
+export async function setJSON(key, value, shared = false) {
+  try {
+    await window.storage.set(key, JSON.stringify(value), shared);
+  } catch (e) {
+    console.error("storage set failed", e);
+  }
+}
+
+// ---end: ./src/lib/storage.js---
+
+// File: ./src/main.jsx
+// ---start---
+import "./storageShim";
+import "./styles/tokens.css";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// ---end: ./src/main.jsx---
+
+// File: ./src/pages/AuthPanel.css
+// ---start---
+.auth-panel {
+  max-width: 420px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+.auth-panel__card {
+  padding: 28px;
+}
+
+.auth-panel__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  margin-top: 0;
+  color: var(--color-leaf);
+}
+
+.auth-panel__field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.auth-panel__field-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  color: var(--color-leaf);
+}
+
+.auth-panel__field-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border: 1.5px solid var(--color-grey);
+  border-radius: 14px;
+  background: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+
+.auth-panel__error {
+  color: #B5482F;
+  font-size: 13px;
+}
+
+.auth-panel__toggle {
+  font-size: 13px;
+  margin-top: 14px;
+}
+
+.auth-panel__toggle-link {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+// ---end: ./src/pages/AuthPanel.css---
+
+// File: ./src/pages/AuthPanel.jsx
+// ---start---
+import React, { useState } from "react";
+import Card from "../components/ui/Card";
+import Btn from "../components/ui/Btn";
+import "./AuthPanel.css";
+
+function Field({ label, ...props }) {
+  return (
+    <label className="auth-panel__field">
+      <div className="auth-panel__field-label">
+        {label}
+      </div>
+      <input
+        {...props}
+        className="auth-panel__field-input"
+      />
+    </label>
+  );
+}
+
+export default function AuthPanel({ auth, onDone }) {
+  const [mode, setMode] = useState("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    if (!email.includes("@") || password.length < 4) {
+      setError("Enter a valid email and a password (4+ characters).");
+      return;
+    }
+    const result = mode === "signin" ? await auth.signIn(email, password) : await auth.signUp(email, password);
+    if (result.error) setError(result.error);
+    else onDone();
+  }
+
+  return (
+    <div className="auth-panel">
+      <Card className="auth-panel__card">
+        <h2 className="auth-panel__title">
+          {mode === "signin" ? "Sign in" : "Create account"}
+        </h2>
+        <form onSubmit={handleSubmit}>
+          <Field label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Field label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          {error && <p className="auth-panel__error">{error}</p>}
+          <Btn type="submit" variant="primary">{mode === "signin" ? "Sign in" : "Create account"}</Btn>
+        </form>
+        <p className="auth-panel__toggle">
+          {mode === "signin" ? "New here? " : "Already have an account? "}
+          <span className="auth-panel__toggle-link" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}>
+            {mode === "signin" ? "Create an account" : "Sign in"}
+          </span>
+        </p>
+      </Card>
+    </div>
+  );
+}
+
+// ---end: ./src/pages/AuthPanel.jsx---
+
+// File: ./src/pages/Landing.css
+// ---start---
+.landing__hero {
+  position: relative;
+  max-width: 1200px;
+  margin: 24px auto 0;
+  padding: 0 20px;
+}
+
+.landing__hero-card {
+  overflow: hidden;
+  position: relative;
+}
+
+.landing__hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.landing__hero-card-inner {
+  padding: 40px 44px;
+  max-width: 560px;
+  text-align: center;
+}
+
+.landing__hero-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(30px, 4.4vw, 48px);
+  line-height: 1.08;
+  margin: 18px 0 14px;
+  color: var(--color-leaf);
+}
+
+.landing__hero-copy {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  color: var(--color-ink);
+}
+
+.landing__collection {
+  padding: 56px 20px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.landing__collection-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 26px;
+  margin-bottom: 20px;
+  color: var(--color-leaf);
+}
+
+.landing__collection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 18px;
+}
+
+.landing__collection-item {
+  cursor: pointer;
+}
+
+.landing__collection-item-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  margin-top: 8px;
+  text-align: center;
+  color: var(--color-leaf);
+}
+
+.landing__collection-footer {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.landing__causes {
+  background: var(--color-leaf);
+  color: var(--color-cream);
+  padding: 60px 20px;
+  border-radius: 36px 36px 0 0;
+}
+
+.landing__causes-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.landing__causes-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 26px;
+  margin-bottom: 22px;
+}
+
+.landing__causes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.landing__cause-card {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.landing__cause-dot {
+  width: 14px;
+  height: 14px;
+  background: var(--cause-color);
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.landing__cause-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.landing__cause-blurb {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+// ---end: ./src/pages/Landing.css---
+
+// File: ./src/pages/Landing.jsx
+// ---start---
+import React from "react";
+import { CAUSES } from "../data/causes";
+import { PRODUCTS } from "../data/products";
+import Card from "../components/ui/Card";
+import Tag from "../components/ui/Tag";
+import Btn from "../components/ui/Btn";
+import CanopyHero from "../components/art/CanopyHero";
+import PosterTile from "../components/art/PosterTile";
+import "./Landing.css";
+
+export default function Landing({ onOrder, onShop }) {
+  return (
+    <div>
+      <section className="landing__hero">
+        <Card className="landing__hero-card card--sky">
+          <CanopyHero height={420} />
+          <div className="landing__hero-overlay">
+            <Card className="landing__hero-card-inner card--overlay">
+              <Tag>10% of every order funds a cause you pick</Tag>
+              <h1 className="landing__hero-title">
+                Portraits of the wild,<br />worn with purpose.
+              </h1>
+              <p className="landing__hero-copy">
+                Painterly wildlife prints, printed to order. No batches, no inventory.
+              </p>
+              <Btn variant="primary" onClick={onShop}>Shop the collection</Btn>
+            </Card>
+          </div>
+        </Card>
+      </section>
+
+      <section className="landing__collection">
+        <h2 className="landing__collection-title">The collection</h2>
+        <div className="landing__collection-grid">
+          {PRODUCTS.slice(0, 4).map((p) => (
+            <div key={p.id} onClick={() => onOrder(p.id)} className="landing__collection-item">
+              <PosterTile product={p} size={90} />
+              <div className="landing__collection-item-name">{p.name}</div>
+            </div>
+          ))}
+        </div>
+        <div className="landing__collection-footer">
+          <Btn variant="ghost" onClick={onShop}>View all designs</Btn>
+        </div>
+      </section>
+
+      <section className="landing__causes">
+        <div className="landing__causes-inner">
+          <h2 className="landing__causes-title">Where your 10% can go</h2>
+          <div className="landing__causes-grid">
+            {CAUSES.map((c) => (
+              <div key={c.id} className="landing__cause-card" style={{ "--cause-color": c.color }}>
+                <div className="landing__cause-dot" />
+                <div className="landing__cause-name">{c.name}</div>
+                <div className="landing__cause-blurb">{c.blurb}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// ---end: ./src/pages/Landing.jsx---
+
+// File: ./src/pages/OrderForm.css
+// ---start---
+.order-form {
+  min-height: 100vh;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+.order-form__body {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 20px 80px;
+}
+
+.order-form__back {
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.order-form__brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+
+.order-form__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 30px;
+  margin: 0 0 8px;
+  color: var(--color-leaf);
+}
+
+.order-form__intro {
+  opacity: 0.75;
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+
+.order-form__panel {
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 26px;
+  box-shadow: 0 10px 30px rgba(37, 51, 42, 0.12);
+  margin-bottom: 20px;
+}
+
+.order-form__check {
+  font-size: 40px;
+  margin-bottom: 6px;
+}
+
+.order-form__panel-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--color-leaf);
+  margin-top: 0;
+}
+
+.order-form__panel-copy {
+  line-height: 1.6;
+}
+
+.order-form__pay-btn {
+  display: inline-block;
+  margin-top: 10px;
+  background: var(--color-gold);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.order-form__panel-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  color: var(--color-leaf);
+}
+
+.order-form__design-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.order-form__design-item {
+  cursor: pointer;
+  border-radius: 18px;
+  padding: 4px;
+  border: 2.5px solid transparent;
+}
+
+.order-form__design-item--selected {
+  border-color: var(--color-leaf);
+}
+
+.order-form__tile {
+  background: var(--tile-bg);
+  color: var(--tile-fg);
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.order-form__design-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 17px;
+  color: var(--color-leaf);
+}
+
+.order-form__size-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.order-form__size-chip {
+  width: 52px;
+  height: 44px;
+  border: 1.5px solid var(--color-leaf);
+  background: transparent;
+  color: var(--color-leaf);
+  font-family: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 999px;
+}
+
+.order-form__size-chip--selected {
+  background: var(--color-leaf);
+  color: var(--color-cream);
+}
+
+.order-form__size-note {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+.order-form__field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.order-form__field-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  color: var(--color-leaf);
+}
+
+.order-form__field-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border: 1.5px solid var(--color-grey);
+  border-radius: 14px;
+  background: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+
+.order-form__field-row {
+  display: flex;
+  gap: 12px;
+}
+
+.order-form__field-col {
+  flex: 1;
+}
+
+.order-form__summary {
+  background: var(--color-leaf);
+  color: var(--color-cream);
+  border-radius: 24px;
+  padding: 22px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-form__summary-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 17px;
+}
+
+.order-form__summary-sub {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.order-form__summary-price {
+  font-family: var(--font-mono);
+  font-size: 22px;
+}
+
+.order-form__error {
+  color: #B5482F;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+
+.order-form__submit {
+  width: 100%;
+  background: var(--color-gold);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 16px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.order-form__submit--submitting {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.order-form__submit-note {
+  font-size: 12px;
+  opacity: 0.6;
+  margin-top: 12px;
+  text-align: center;
+}
+
+// ---end: ./src/pages/OrderForm.css---
+
+// File: ./src/pages/OrderForm.jsx
+// ---start---
+import React, { useState } from "react";
+
+/* ===========================================================
+   COMMON THREAD — Order form (no storefront)
+
+   HOW THIS WORKS
+   1. Customer picks a design + size, fills in shipping info,
+      hits "Submit order details."
+   2. Their info is sent to a Formspree endpoint (free form
+      backend — no server needed) so it lands in your inbox
+      and a spreadsheet.
+   3. They're then shown a "Complete payment" button that opens
+      your Stripe Payment Link in a new tab.
+   4. You get the Formspree email + the Stripe payment
+      notification, cross-reference them, and place the actual
+      order yourself in Printify (Orders → Create Order → Manual),
+      pasting in the shipping address from the Formspree email.
+
+   BEFORE YOU DEPLOY THIS — edit the CONFIG block below:
+   - FORMSPREE_ENDPOINT: sign up free at formspree.io, create a
+     form, paste its endpoint URL here (looks like
+     "https://formspree.io/f/xxxxxxx").
+   - STRIPE_PAYMENT_LINK: create a Payment Link in your Stripe
+     dashboard for a flat $20 charge (Products → Payment Links),
+     paste the URL here. Since every design is the same price,
+     one link covers everything; the $2 XXL surcharge is noted
+     to the customer but not auto-added — see note below.
+=========================================================== */
+
+
+import { PRODUCTS } from "../data/products";
+import ProductIcon from "../components/art/ProductIcon";
+import "./OrderForm.css";
+
+const CONFIG = {
+  FORMSPREE_ENDPOINT: "https://formspree.io/f/YOUR_FORM_ID",
+  STRIPE_PAYMENT_LINK: "https://buy.stripe.com/YOUR_PAYMENT_LINK",
+};
+
+
+
+const BASE_PRICE = 20;
+const SIZE_SURCHARGE = { XXL: 2 };
+const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+
+
+
+const FONTS = `
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+`;
+
+function Tile({ product, size = 90, selected }) {
+  return (
+    <div
+      className="order-form__tile"
+      style={{ "--tile-bg": product.tileBg, "--tile-fg": product.tileFg }}
+    >
+      <ProductIcon icon={product.icon} size={size} color={product.tileFg} />
+    </div>
+  );
+}
+
+function Field({ label, ...props }) {
+  return (
+    <label className="order-form__field">
+      <div className="order-form__field-label">
+        {label}
+      </div>
+      <input
+        {...props}
+        className="order-form__field-input"
+      />
+    </label>
+  );
+}
+
+export default function OrderForm({ initialDesignId, onBack }) {
+  const [designId, setDesignId] = useState(initialDesignId || PRODUCTS[0].id);
+  const [size, setSize] = useState("M");
+  const [ship, setShip] = useState({ name: "", email: "", address1: "", address2: "", city: "", region: "", postal: "", country: "", phone: "" });
+  const [status, setStatus] = useState("form"); // form | submitting | submitted | error
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const design = PRODUCTS.find((p) => p.id === designId);
+  const price = BASE_PRICE + (SIZE_SURCHARGE[size] || 0);
+
+  function update(field, value) {
+    setShip((s) => ({ ...s, [field]: value }));
+  }
+
+  const requiredFilled = ship.name && ship.email && ship.address1 && ship.city && ship.region && ship.postal && ship.country;
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!requiredFilled) {
+      setErrorMsg("Please fill in every required field before submitting.");
+      return;
+    }
+    setStatus("submitting");
+    setErrorMsg("");
+    try {
+      const res = await fetch(CONFIG.FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          design: design.name,
+          size,
+          price: `$${price}`,
+          ...ship,
+        }),
+      });
+      if (!res.ok) throw new Error("Form submission failed");
+      setStatus("submitted");
+    } catch (err) {
+      console.error(err);
+      setStatus("error");
+      setErrorMsg("Something went wrong sending your order details. Please try again, or email us directly.");
+    }
+  }
+
+  return (
+    <div className="order-form">
+      <style>{FONTS}</style>
+      <style>{`* { box-sizing: border-box; } body { margin: 0; }`}</style>
+
+      <div className="order-form__body">
+        <span onClick={onBack} className="order-form__back">← Back</span>
+        <div className="order-form__brand">Common Thread</div>
+        <h1 className="order-form__title">Order a shirt</h1>
+        <p className="order-form__intro">
+          Every shirt is printed to order once we receive your details and payment — no batches, no inventory.
+          Priced at cost: ${BASE_PRICE} standard sizes, ${BASE_PRICE + (SIZE_SURCHARGE.XXL || 0)} for XXL.
+        </p>
+
+        {status === "submitted" ? (
+          <div className="order-form__panel">
+            <div className="order-form__check">{"✓"}</div>
+            <h2 className="order-form__panel-title">Order details received</h2>
+            <p className="order-form__panel-copy">
+              One step left — complete payment below (${price} for a {size} {design.name}). Once payment comes through
+              we'll place your print order and email you tracking when it ships.
+            </p>
+            <a
+              href={CONFIG.STRIPE_PAYMENT_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="order-form__pay-btn"
+            >
+              Complete payment {"→"}
+            </a>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div className="order-form__panel">
+              <div className="order-form__panel-label">
+                Choose a design
+              </div>
+              <div className="order-form__design-grid">
+                {PRODUCTS.map((p) => (
+                  <div
+                    key={p.id}
+                    onClick={() => setDesignId(p.id)}
+                    className={`order-form__design-item ${designId === p.id ? "order-form__design-item--selected" : ""}`.trim()}
+                  >
+                    <Tile product={p} size={54} selected={designId === p.id} />
+                  </div>
+                ))}
+              </div>
+              <div className="order-form__design-name">{design.name}</div>
+            </div>
+
+            <div className="order-form__panel">
+              <div className="order-form__panel-label">
+                Size
+              </div>
+              <div className="order-form__size-row">
+                {SIZES.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setSize(s)}
+                    className={`order-form__size-chip ${size === s ? "order-form__size-chip--selected" : ""}`.trim()}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+              {SIZE_SURCHARGE[size] ? (
+                <p className="order-form__size-note">+${SIZE_SURCHARGE[size]} for {size}</p>
+              ) : null}
+            </div>
+
+            <div className="order-form__panel">
+              <div className="order-form__panel-label">
+                Shipping details
+              </div>
+              <Field label="Full name" required value={ship.name} onChange={(e) => update("name", e.target.value)} />
+              <Field label="Email" type="email" required value={ship.email} onChange={(e) => update("email", e.target.value)} />
+              <Field label="Address line 1" required value={ship.address1} onChange={(e) => update("address1", e.target.value)} />
+              <Field label="Address line 2 (optional)" value={ship.address2} onChange={(e) => update("address2", e.target.value)} />
+              <div className="order-form__field-row">
+                <div className="order-form__field-col">
+                  <Field label="City" required value={ship.city} onChange={(e) => update("city", e.target.value)} />
+                </div>
+                <div className="order-form__field-col">
+                  <Field label="State / region" required value={ship.region} onChange={(e) => update("region", e.target.value)} />
+                </div>
+              </div>
+              <div className="order-form__field-row">
+                <div className="order-form__field-col">
+                  <Field label="Postal code" required value={ship.postal} onChange={(e) => update("postal", e.target.value)} />
+                </div>
+                <div className="order-form__field-col">
+                  <Field label="Country" required value={ship.country} onChange={(e) => update("country", e.target.value)} />
+                </div>
+              </div>
+              <Field label="Phone (optional)" value={ship.phone} onChange={(e) => update("phone", e.target.value)} />
+            </div>
+
+            <div className="order-form__summary">
+              <div>
+                <div className="order-form__summary-title">{design.name}, size {size}</div>
+                <div className="order-form__summary-sub">Printed to order, no markup</div>
+              </div>
+              <div className="order-form__summary-price">${price}</div>
+            </div>
+
+            {errorMsg && <p className="order-form__error">{errorMsg}</p>}
+
+            <button
+              type="submit"
+              disabled={status === "submitting"}
+              className={`order-form__submit ${status === "submitting" ? "order-form__submit--submitting" : ""}`.trim()}
+            >
+              {status === "submitting" ? "Sending…" : "Submit order details"}
+            </button>
+            <p className="order-form__submit-note">
+              You'll pay on the next screen. Your card isn't charged until you complete that step.
+            </p>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---end: ./src/pages/OrderForm.jsx---
+
+// File: ./src/pages/ProductDetail.jsx
+// ---start---
+import React, { useState } from "react";
+import { TOKENS } from "../theme/tokens";
+import { SIZES } from "../data/products";
+import Card from "../components/ui/Card";
+import Tag from "../components/ui/Tag";
+import Btn from "../components/ui/Btn";
+import PosterTile from "../components/art/PosterTile";
+
+/* ---------------- Product Detail ---------------- */
+export default function ProductDetail({ product, liked, toggleLike, onAdd, onBack }) {
+  const [size, setSize] = useState("M");
+  return (
+    <div style={{ padding: "40px 20px 70px", maxWidth: 1000, margin: "0 auto" }}>
+      <span style={{ cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, opacity: 0.7 }} onClick={onBack}>
+        {"←"} Back to shop
+      </span>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, marginTop: 20 }}>
+        <Card style={{ padding: 40, display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <PosterTile product={product} size={240} />
+        </Card>
+        <div>
+          {product.tag && <Tag>{product.tag}</Tag>}
+          <h1 style={{ fontFamily: "'Fraunces', serif", fontWeight: 500, fontSize: 34, margin: "12px 0", color: TOKENS.leaf }}>{product.name}</h1>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, marginBottom: 14 }}>${product.price}</div>
+          <p style={{ fontSize: 16, lineHeight: 1.6, marginBottom: 22 }}>{product.blurb} Screen-printed on heavyweight organic cotton, unisex fit.</p>
+
+          <div style={{ marginBottom: 22 }}>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, textTransform: "uppercase", marginBottom: 8 }}>Size</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {SIZES.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSize(s)}
+                  style={{
+                    width: 46,
+                    height: 46,
+                    border: `1.5px solid ${TOKENS.leaf}`,
+                    background: size === s ? TOKENS.leaf : "transparent",
+                    color: size === s ? TOKENS.cream : TOKENS.leaf,
+                    fontFamily: "'Inter', sans-serif",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    borderRadius: 999,
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 12 }}>
+            <Btn variant="primary" onClick={() => onAdd(size)}>
+              Add to cart
+            </Btn>
+            <Btn variant="ghost" onClick={toggleLike}>
+              {liked ? "♥ Saved" : "♡ Save"}
+            </Btn>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---end: ./src/pages/ProductDetail.jsx---
+
+// File: ./src/pages/Shop.css
+// ---start---
+.shop {
+  padding: 40px 20px 70px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.shop__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 32px;
+  margin-bottom: 8px;
+  color: var(--color-leaf);
+}
+
+.shop__subtitle {
+  margin-bottom: 26px;
+  opacity: 0.75;
+}
+
+.shop__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 22px;
+}
+
+.shop__card {
+  padding: 18px;
+}
+
+.shop__card-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.shop__like-btn {
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.shop__card-media {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 18px;
+}
+
+.shop__card-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 18px;
+  color: var(--color-leaf);
+  margin-bottom: 4px;
+}
+
+.shop__order-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+// ---end: ./src/pages/Shop.css---
+
+// File: ./src/pages/Shop.jsx
+// ---start---
+import React from "react";
+import { PRODUCTS } from "../data/products";
+import PosterTile from "../components/art/PosterTile";
+import Card from "../components/ui/Card";
+import Btn from "../components/ui/Btn";
+import "./Shop.css";
+
+export default function Shop({ liked, toggleLike, onOrder, user, onRequireSignIn }) {
+  function handleLike(id) {
+    if (!user) { onRequireSignIn(); return; }
+    toggleLike(id);
+  }
+
+  return (
+    <div className="shop">
+      <h1 className="shop__title">Shop all</h1>
+      <p className="shop__subtitle">Naturalist portraits, printed to order.</p>
+      <div className="shop__grid">
+        {PRODUCTS.map((p) => (
+          <Card key={p.id} className="shop__card">
+            <div className="shop__card-header">
+              <span onClick={() => handleLike(p.id)} className="shop__like-btn" title="Save">
+                {liked.includes(p.id) ? "♥" : "♡"}
+              </span>
+            </div>
+            <div className="shop__card-media">
+              <PosterTile product={p} size={110} />
+            </div>
+            <div className="shop__card-title">{p.name}</div>
+            <Btn variant="primary" className="shop__order-btn" onClick={() => onOrder(p.id)}>
+              Order this design
+            </Btn>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ---end: ./src/pages/Shop.jsx---
+
+// File: ./src/storageShim.js
+// ---start---
+// Minimal window.storage.get/set implementation backed by localStorage,
+// standing in for the host environment's key/value API during local demos.
+window.storage = {
+  async get(key) {
+    const value = localStorage.getItem(key);
+    return value === null ? null : { value };
+  },
+  async set(key, value) {
+    localStorage.setItem(key, value);
+  },
+};
+
+// ---end: ./src/storageShim.js---
+
+// File: ./src/styles/tokens.css
+// ---start---
+:root {
+  --color-sky: #BFE0EA;
+  --color-sky-deep: #6FA6BE;
+  --color-leaf: #1F3D2E;
+  --color-leaf-deep: #132A20;
+  --color-gold: #D9A94E;
+  --color-cream: #F6F1E4;
+  --color-cream-dim: #EAE2CC;
+  --color-ink: #25332A;
+  --color-grey: #9FAE9C;
+
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+
+// ---end: ./src/styles/tokens.css---
+
+// File: ./src/theme/tokens.js
+// ---start---
+export const FONTS = `
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+`;
+
+export const TOKENS = {
+  sky: "#BFE0EA",
+  skyDeep: "#6FA6BE",
+  leaf: "#1F3D2E",
+  leafDeep: "#132A20",
+  gold: "#D9A94E",
+  cream: "#F6F1E4",
+  creamDim: "#EAE2CC",
+  ink: "#25332A",
+  grey: "#9FAE9C",
+};
+
+// ---end: ./src/theme/tokens.js---
+
+// File: ./vite.config.js
+// ---start---
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+});
+
+// ---end: ./vite.config.js---
+

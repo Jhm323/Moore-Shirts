@@ -13,7 +13,13 @@ export default function PosterTile({ product, size = 120 }) {
       className="poster-tile"
       style={{ "--tile-bg": bg, "--tile-fg": fg, "--tile-size": `${size}px` }}
     >
-      {product.icon === "canopy" ? <CanopyIcon size={size} color={fg} /> : <ProductIcon icon={product.icon} size={size} color={fg} />}
+      {product.image ? (
+        <img className="poster-tile__image" src={product.image} alt={product.name} />
+      ) : product.icon === "canopy" ? (
+        <CanopyIcon size={size} color={fg} />
+      ) : (
+        <ProductIcon icon={product.icon} size={size} color={fg} />
+      )}
     </div>
   );
 }

@@ -55,7 +55,11 @@ function Tile({ product, size = 90, selected }) {
       className="order-form__tile"
       style={{ "--tile-bg": product.tileBg, "--tile-fg": product.tileFg }}
     >
-      <ProductIcon icon={product.icon} size={size} color={product.tileFg} />
+      {product.image ? (
+        <img className="order-form__tile-image" src={product.image} alt={product.name} />
+      ) : (
+        <ProductIcon icon={product.icon} size={size} color={product.tileFg} />
+      )}
     </div>
   );
 }
