@@ -1,5 +1,5 @@
 import React from "react";
-import Avatar from "../ui/Avatar";
+import Avatar from "../../ui/Avatar";
 import "./Header.css";
 
 export default function Header({ onLogoClick, onShopClick, user, profile, onAuthClick, onProfileClick }) {

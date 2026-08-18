@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { SIZES } from "../../data/products";
 import Card from "../../components/ui/Card/Card";
-import Tag from "../../components/ui/Tag";
+import Tag from "../../components/ui/Tag/Tag";
 import Btn from "../../components/ui/Btn/Btn";
 import PosterTile from "../../components/art/PosterTile";
 import "./ProductDetail.css";
