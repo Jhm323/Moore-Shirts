@@ -10,3 +10,5 @@ dist-ssr
 .DS_Store
 *.log
 npm-debug.log*
+.vercel
+.env*
