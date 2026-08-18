@@ -27,7 +27,7 @@ export default function App() {
       <Header onLogoClick={() => setView("landing")} onShopClick={() => setView("shop")} user={auth.user} onAuthClick={() => setView("auth")} onSignOut={auth.signOut} />
       {view === "landing" && <Landing onOrder={goOrder} onShop={() => setView("shop")} />}
       {view === "shop" && <Shop liked={liked} toggleLike={toggleLike} onOrder={goOrder} user={auth.user} onRequireSignIn={() => setView("auth")} />}
-      {view === "order" && <OrderForm initialDesignId={presetDesignId} onBack={() => setView("shop")} />}
+      {view === "order" && <OrderForm initialDesignId={presetDesignId} onBack={() => setView("shop")} user={auth.user} />}
       {view === "auth" && <AuthPanel auth={auth} onDone={() => setView("shop")} />}
       <Footer />
     </div>

@@ -6,20 +6,19 @@ import React, { useState } from "react";
    HOW THIS WORKS
    1. Customer picks a design + size, fills in shipping info,
       hits "Submit order details."
-   2. Their info is sent to a Formspree endpoint (free form
-      backend — no server needed) so it lands in your inbox
-      and a spreadsheet.
+   2. Their order is inserted directly into the Supabase `orders`
+      table (RLS-protected — see supabase/migrations/0001_init.sql).
+      A Supabase Database Webhook fires on that insert and calls
+      the `api/send-order-email` serverless function, which emails
+      the order details to you via Resend automatically.
    3. They're then shown a "Complete payment" button that opens
       your Stripe Payment Link in a new tab.
-   4. You get the Formspree email + the Stripe payment
+   4. You get the order-notification email + the Stripe payment
       notification, cross-reference them, and place the actual
       order yourself in Printify (Orders → Create Order → Manual),
-      pasting in the shipping address from the Formspree email.
+      pasting in the shipping address from the order email.
 
    BEFORE YOU DEPLOY THIS — edit the CONFIG block below:
-   - FORMSPREE_ENDPOINT: sign up free at formspree.io, create a
-     form, paste its endpoint URL here (looks like
-     "https://formspree.io/f/xxxxxxx").
    - STRIPE_PAYMENT_LINK: create a Payment Link in your Stripe
      dashboard for a flat $20 charge (Products → Payment Links),
      paste the URL here. Since every design is the same price,
@@ -30,10 +29,10 @@ import React, { useState } from "react";
 
 import { PRODUCTS } from "../data/products";
 import ProductIcon from "../components/art/ProductIcon";
+import { supabase } from "../lib/supabase";
 import "./OrderForm.css";
 
 const CONFIG = {
-  FORMSPREE_ENDPOINT: import.meta.env.VITE_FORMSPREE_ENDPOINT,
   STRIPE_PAYMENT_LINK: import.meta.env.VITE_STRIPE_PAYMENT_LINK,
 };
 
@@ -78,7 +77,7 @@ function Field({ label, ...props }) {
   );
 }
 
-export default function OrderForm({ initialDesignId, onBack }) {
+export default function OrderForm({ initialDesignId, onBack, user }) {
   const [designId, setDesignId] = useState(initialDesignId || PRODUCTS[0].id);
   const [size, setSize] = useState("M");
   const [ship, setShip] = useState({ name: "", email: "", address1: "", address2: "", city: "", region: "", postal: "", country: "", phone: "" });
@@ -103,22 +102,20 @@ export default function OrderForm({ initialDesignId, onBack }) {
     setStatus("submitting");
     setErrorMsg("");
     try {
-      const res = await fetch(CONFIG.FORMSPREE_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          design: design.name,
-          size,
-          price: `$${price}`,
-          ...ship,
-        }),
+      const { error } = await supabase.from("orders").insert({
+        user_id: user ? user.id : null,
+        design_id: design.id,
+        design_name: design.name,
+        size,
+        price,
+        shipping: ship,
       });
-      if (!res.ok) throw new Error("Form submission failed");
+      if (error) throw error;
       setStatus("submitted");
     } catch (err) {
       console.error(err);
       setStatus("error");
-      setErrorMsg("Something went wrong sending your order details. Please try again, or email us directly.");
+      setErrorMsg("Something went wrong saving your order details. Please try again, or email us directly.");
     }
   }
 
