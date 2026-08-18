@@ -7,7 +7,7 @@ import Btn from "../../components/ui/Btn";
 import PosterTile from "../../components/art/PosterTile";
 import "./Landing.css";
 
-export default function Landing({ onOrder, onShop }) {
+export default function Landing({ onShop, onPreview }) {
   return (
     <div>
       <section className="landing__hero">
@@ -31,7 +31,7 @@ export default function Landing({ onOrder, onShop }) {
         <h2 className="landing__collection-title">The collection</h2>
         <div className="landing__collection-grid">
           {PRODUCTS.slice(0, 4).map((p) => (
-            <div key={p.id} onClick={() => onOrder(p.id)} className="landing__collection-item">
+            <div key={p.id} onClick={() => onPreview(p.id)} className="landing__collection-item">
               <PosterTile product={p} size={90} />
               <div className="landing__collection-item-name">{p.name}</div>
             </div>

@@ -1,0 +1,71 @@
+.design-lightbox__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 8, 16, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.design-lightbox__card {
+  background: var(--color-surface);
+  border-radius: 24px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 460px;
+  width: 100%;
+}
+
+.design-lightbox__name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  color: var(--color-accent);
+  margin-top: 20px;
+}
+
+.design-lightbox__price {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--color-text);
+  opacity: 0.8;
+  margin: 6px 0 20px;
+}
+
+.design-lightbox__close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-size: 30px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.design-lightbox__nav {
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-size: 48px;
+  cursor: pointer;
+  padding: 12px 20px;
+  line-height: 1;
+  z-index: 1001;
+}
+
+.design-lightbox__nav--prev {
+  position: absolute;
+  left: 12px;
+}
+
+.design-lightbox__nav--next {
+  position: absolute;
+  right: 12px;
+}

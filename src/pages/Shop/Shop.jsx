@@ -5,7 +5,7 @@ import Card from "../../components/ui/Card";
 import Btn from "../../components/ui/Btn";
 import "./Shop.css";
 
-export default function Shop({ liked, toggleLike, onOrder, user, onRequireSignIn }) {
+export default function Shop({ liked, toggleLike, onOrder, user, onRequireSignIn, onPreview }) {
   function handleLike(id) {
     if (!user) { onRequireSignIn(); return; }
     toggleLike(id);
@@ -23,7 +23,7 @@ export default function Shop({ liked, toggleLike, onOrder, user, onRequireSignIn
                 {liked.includes(p.id) ? "♥" : "♡"}
               </span>
             </div>
-            <div className="shop__card-media">
+            <div className="shop__card-media" onClick={() => onPreview(p.id)}>
               <PosterTile product={p} size={110} />
             </div>
             <div className="shop__card-title">{p.name}</div>
