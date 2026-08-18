@@ -2,6 +2,7 @@
   padding: 40px 20px 70px;
   max-width: 1000px;
   margin: 0 auto;
+  color: var(--color-text);
 }
 
 .product-detail__back {
@@ -30,7 +31,7 @@
   font-weight: 500;
   font-size: 34px;
   margin: 12px 0;
-  color: var(--color-leaf);
+  color: var(--color-accent);
 }
 
 .product-detail__price {
@@ -65,9 +66,9 @@
 .product-detail__size-chip {
   width: 46px;
   height: 46px;
-  border: 1.5px solid var(--color-leaf);
+  border: 1.5px solid var(--color-accent);
   background: transparent;
-  color: var(--color-leaf);
+  color: var(--color-accent);
   font-family: var(--font-body);
   font-weight: 600;
   cursor: pointer;
@@ -75,8 +76,8 @@
 }
 
 .product-detail__size-chip--selected {
-  background: var(--color-leaf);
-  color: var(--color-cream);
+  background: var(--color-button);
+  color: var(--color-text);
 }
 
 .product-detail__actions {

@@ -9,7 +9,7 @@
   font-weight: 500;
   font-size: 32px;
   margin-bottom: 8px;
-  color: var(--color-leaf);
+  color: var(--color-accent);
 }
 
 .shop__subtitle {
@@ -47,7 +47,7 @@
   font-family: var(--font-display);
   font-weight: 500;
   font-size: 18px;
-  color: var(--color-leaf);
+  color: var(--color-accent);
   margin-bottom: 4px;
 }
 

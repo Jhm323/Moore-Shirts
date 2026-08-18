@@ -27,9 +27,9 @@ import React, { useState } from "react";
 =========================================================== */
 
 
-import { PRODUCTS } from "../data/products";
-import ProductIcon from "../components/art/ProductIcon";
-import { supabase } from "../lib/supabase";
+import { PRODUCTS } from "../../data/products";
+import ProductIcon from "../../components/art/ProductIcon";
+import { supabase } from "../../lib/supabase";
 import "./OrderForm.css";
 
 const CONFIG = {

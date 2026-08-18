@@ -1,7 +1,7 @@
 import React from "react";
-import { TOKENS } from "../../theme/tokens";
-import CanopyIcon from "./CanopyIcon";
-import ProductIcon from "./ProductIcon";
+import { TOKENS } from "../../../theme/tokens";
+import CanopyIcon from "../CanopyIcon";
+import ProductIcon from "../ProductIcon";
 import "./PosterTile.css";
 
 /* A tile that shows a product's icon, or the canopy motif for the flagship print */

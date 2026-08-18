@@ -1,5 +1,5 @@
 import React from "react";
-import { TOKENS } from "../../theme/tokens";
+import { TOKENS } from "../../../theme/tokens";
 import "./CanopyHero.css";
 
 /* ---------- canopy / sky hero art (original illustration, not a

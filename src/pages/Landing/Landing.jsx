@@ -1,19 +1,17 @@
 import React from "react";
-import { CAUSES } from "../data/causes";
-import { PRODUCTS } from "../data/products";
-import Card from "../components/ui/Card";
-import Tag from "../components/ui/Tag";
-import Btn from "../components/ui/Btn";
-import CanopyHero from "../components/art/CanopyHero";
-import PosterTile from "../components/art/PosterTile";
+import { CAUSES } from "../../data/causes";
+import { PRODUCTS } from "../../data/products";
+import Card from "../../components/ui/Card";
+import Tag from "../../components/ui/Tag";
+import Btn from "../../components/ui/Btn";
+import PosterTile from "../../components/art/PosterTile";
 import "./Landing.css";
 
 export default function Landing({ onOrder, onShop }) {
   return (
     <div>
       <section className="landing__hero">
-        <Card className="landing__hero-card card--sky">
-          <CanopyHero height={420} />
+        <Card className="landing__hero-card">
           <div className="landing__hero-overlay">
             <Card className="landing__hero-card-inner card--overlay">
               <Tag>10% of every order funds a cause you pick</Tag>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Avatar from "../ui/Avatar";
-import Btn from "../ui/Btn/Btn";
+import Avatar from "../../ui/Avatar";
+import Btn from "../../ui/Btn";
 import "./ProfileModal.css";
 
 export default function ProfileModal({ user, profile, updateProfile, onClose, onSignOut }) {

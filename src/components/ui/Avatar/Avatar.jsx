@@ -1,5 +1,5 @@
 import React from "react";
-import { getInitials, getAvatarColor } from "../../lib/avatar";
+import { getInitials, getAvatarColor } from "../../../lib/avatar";
 import "./Avatar.css";
 
 export default function Avatar({ label, size = 36, onClick }) {

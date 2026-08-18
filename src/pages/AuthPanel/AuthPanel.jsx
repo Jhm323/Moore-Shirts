@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Card from "../components/ui/Card";
-import Btn from "../components/ui/Btn";
+import Card from "../../components/ui/Card";
+import Btn from "../../components/ui/Btn";
 import "./AuthPanel.css";
 
 function Field({ label, ...props }) {

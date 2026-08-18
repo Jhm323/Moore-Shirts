@@ -3,8 +3,8 @@
   font-size: 11px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  background: var(--color-gold);
-  color: var(--color-ink);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
   padding: 5px 12px;
   border-radius: 999px;
   display: inline-block;

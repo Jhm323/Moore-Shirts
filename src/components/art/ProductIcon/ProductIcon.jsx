@@ -1,5 +1,5 @@
 import React from "react";
-import { TOKENS } from "../../theme/tokens";
+import { TOKENS } from "../../../theme/tokens";
 
 /* ---------- icon tiles (original line-art, not photo reproductions) ---------- */
 export default function ProductIcon({ icon, size = 120, color }) {

@@ -1,5 +1,5 @@
 import React from "react";
-import { TOKENS } from "../../theme/tokens";
+import { TOKENS } from "../../../theme/tokens";
 
 /* small canopy motif used as a product tile icon */
 export default function CanopyIcon({ size = 120, color = TOKENS.leaf }) {

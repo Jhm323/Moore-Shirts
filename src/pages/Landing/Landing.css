@@ -8,6 +8,7 @@
 .landing__hero-card {
   overflow: hidden;
   position: relative;
+  min-height: 420px;
 }
 
 .landing__hero-overlay {
@@ -31,14 +32,14 @@
   font-size: clamp(30px, 4.4vw, 48px);
   line-height: 1.08;
   margin: 18px 0 14px;
-  color: var(--color-leaf);
+  color: var(--color-accent);
 }
 
 .landing__hero-copy {
   font-size: 16px;
   line-height: 1.6;
   margin-bottom: 24px;
-  color: var(--color-ink);
+  color: var(--color-text);
 }
 
 .landing__collection {
@@ -52,7 +53,7 @@
   font-weight: 500;
   font-size: 26px;
   margin-bottom: 20px;
-  color: var(--color-leaf);
+  color: var(--color-accent);
 }
 
 .landing__collection-grid {
@@ -70,7 +71,7 @@
   font-size: 14px;
   margin-top: 8px;
   text-align: center;
-  color: var(--color-leaf);
+  color: var(--color-accent);
 }
 
 .landing__collection-footer {
@@ -79,8 +80,8 @@
 }
 
 .landing__causes {
-  background: var(--color-leaf);
-  color: var(--color-cream);
+  background: var(--color-button);
+  color: var(--color-text);
   padding: 60px 20px;
   border-radius: 36px 36px 0 0;
 }

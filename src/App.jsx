@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { FONTS } from "../theme/tokens";
-import { useAuth } from "../hooks/useAuth";
-import { useLiked } from "../hooks/useLiked";
-import { useProfile } from "../hooks/useProfile";
+import { FONTS } from "./theme/tokens";
+import { useAuth } from "./hooks/useAuth";
+import { useLiked } from "./hooks/useLiked";
+import { useProfile } from "./hooks/useProfile";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
-import Landing from "../pages/Landing";
-import Shop from "../pages/Shop/Shop";
-import OrderForm from "../pages/OrderForm";
-import AuthPanel from "../pages/AuthPanel";
-import ProfileModal from "../components/profile/ProfileModal";
+import Landing from "./pages/Landing/Landing";
+import Shop from "./pages/Shop/Shop";
+import OrderForm from "./pages/OrderForm/OrderForm";
+import AuthPanel from "./pages/AuthPanel/AuthPanel";
+import ProfileModal from "./components/profile/ProfileModal";
 import "./App.css";
 
 export default function App() {

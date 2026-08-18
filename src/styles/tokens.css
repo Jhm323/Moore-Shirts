@@ -1,13 +1,13 @@
 :root {
-  --color-sky: #BFE0EA;
-  --color-sky-deep: #6FA6BE;
-  --color-leaf: #1F3D2E;
-  --color-leaf-deep: #132A20;
-  --color-gold: #D9A94E;
-  --color-cream: #F6F1E4;
-  --color-cream-dim: #EAE2CC;
-  --color-ink: #25332A;
-  --color-grey: #9FAE9C;
+  --color-bg: #2A1A2C;
+  --color-bg-dim: #241725;
+  --color-surface: #3D2740;
+  --color-text: #F4E8DC;
+  --color-text-on-accent: #2A1A2C;
+  --color-accent: #D9A94E;
+  --color-button: #6B2C52;
+  --color-button-hover: #7D3560;
+  --color-border: #9C8296;
 
   --font-display: 'Fraunces', serif;
   --font-body: 'Inter', sans-serif;

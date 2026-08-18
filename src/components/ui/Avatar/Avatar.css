@@ -3,7 +3,7 @@
   height: var(--avatar-size);
   border-radius: 50%;
   background: var(--avatar-color);
-  color: var(--color-cream);
+  color: var(--color-text);
   display: flex;
   align-items: center;
   justify-content: center;

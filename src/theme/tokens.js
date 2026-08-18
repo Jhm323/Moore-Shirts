@@ -3,13 +3,13 @@ export const FONTS = `
 `;
 
 export const TOKENS = {
-  sky: "#BFE0EA",
-  skyDeep: "#6FA6BE",
-  leaf: "#1F3D2E",
-  leafDeep: "#132A20",
-  gold: "#D9A94E",
-  cream: "#F6F1E4",
-  creamDim: "#EAE2CC",
-  ink: "#25332A",
-  grey: "#9FAE9C",
+  bg: "#2A1A2C",
+  bgDim: "#241725",
+  surface: "#3D2740",
+  text: "#F4E8DC",
+  textOnAccent: "#2A1A2C",
+  accent: "#D9A94E",
+  button: "#6B2C52",
+  buttonHover: "#7D3560",
+  border: "#9C8296",
 };
