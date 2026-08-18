@@ -46,6 +46,11 @@
   font-size: 13px;
 }
 
+.auth-panel__info {
+  color: var(--color-leaf);
+  font-size: 13px;
+}
+
 .auth-panel__toggle {
   font-size: 13px;
   margin-top: 14px;

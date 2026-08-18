@@ -22,16 +22,19 @@ export default function AuthPanel({ auth, onDone }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setInfo("");
     if (!email.includes("@") || password.length < 4) {
       setError("Enter a valid email and a password (4+ characters).");
       return;
     }
     const result = mode === "signin" ? await auth.signIn(email, password) : await auth.signUp(email, password);
     if (result.error) setError(result.error);
+    else if (result.needsConfirmation) setInfo("Check your email to confirm your account, then sign in.");
     else onDone();
   }
 
@@ -45,6 +48,7 @@ export default function AuthPanel({ auth, onDone }) {
           <Field label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
           <Field label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           {error && <p className="auth-panel__error">{error}</p>}
+          {info && <p className="auth-panel__info">{info}</p>}
           <Btn type="submit" variant="primary">{mode === "signin" ? "Sign in" : "Create account"}</Btn>
         </form>
         <p className="auth-panel__toggle">

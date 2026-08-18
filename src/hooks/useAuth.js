@@ -1,37 +1,42 @@
 import { useState, useEffect } from "react";
-import { getJSON, setJSON } from "../lib/storage";
+import { supabase } from "../lib/supabase";
 
 export function useAuth() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      const session = await getJSON("session");
-      if (session?.email) setUser({ email: session.email });
-    })();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ? { id: session.user.id, email: session.user.email } : null);
+      setLoading(false);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ? { id: session.user.id, email: session.user.email } : null);
+    });
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   async function signUp(email, password) {
-    const existing = await getJSON(`account:${email}`);
-    if (existing) return { error: "An account with that email already exists — sign in instead." };
-    await setJSON(`account:${email}`, { email, password });
-    await setJSON("session", { email });
-    setUser({ email });
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return { error: error.message };
+    // If email confirmation is required (Supabase project setting), there's
+    // no session yet even though signUp succeeded -- surface that distinctly
+    // so the UI doesn't pretend the user is logged in.
+    if (!data.session) return { needsConfirmation: true };
     return {};
   }
 
   async function signIn(email, password) {
-    const account = await getJSON(`account:${email}`);
-    if (!account || account.password !== password) return { error: "No matching account, or wrong password." };
-    await setJSON("session", { email });
-    setUser({ email });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: error.message };
     return {};
   }
 
   async function signOut() {
-    await setJSON("session", null);
-    setUser(null);
+    await supabase.auth.signOut();
   }
 
-  return { user, signUp, signIn, signOut };
+  return { user, loading, signUp, signIn, signOut };
 }
