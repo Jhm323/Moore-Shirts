@@ -1,0 +1,16 @@
+.avatar {
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  border-radius: 50%;
+  background: var(--avatar-color);
+  color: var(--color-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: calc(var(--avatar-size) * 0.4);
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}

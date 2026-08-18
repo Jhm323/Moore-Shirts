@@ -1,0 +1,88 @@
+.profile-modal__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(37, 51, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.profile-modal__card {
+  background: var(--color-cream);
+  border-radius: 24px;
+  padding: 32px;
+  max-width: 420px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(37, 51, 42, 0.3);
+}
+
+.profile-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--color-leaf);
+  line-height: 1;
+}
+
+.profile-modal__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.profile-modal__email {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  opacity: 0.7;
+  color: var(--color-ink);
+}
+
+.profile-modal__field {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.profile-modal__field-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  color: var(--color-leaf);
+}
+
+.profile-modal__field-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border: 1.5px solid var(--color-grey);
+  border-radius: 14px;
+  background: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+
+.profile-modal__error {
+  color: #B5482F;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.profile-modal__saved {
+  color: var(--color-leaf);
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.profile-modal__actions {
+  display: flex;
+  gap: 12px;
+}

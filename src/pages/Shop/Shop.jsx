@@ -1,8 +1,8 @@
 import React from "react";
-import { PRODUCTS } from "../data/products";
-import PosterTile from "../components/art/PosterTile";
-import Card from "../components/ui/Card";
-import Btn from "../components/ui/Btn";
+import { PRODUCTS } from "../../data/products";
+import PosterTile from "../../components/art/PosterTile";
+import Card from "../../components/ui/Card/Card";
+import Btn from "../../components/ui/Btn/Btn";
 import "./Shop.css";
 
 export default function Shop({ liked, toggleLike, onOrder, user, onRequireSignIn }) {

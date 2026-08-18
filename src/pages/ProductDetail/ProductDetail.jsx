@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { SIZES } from "../data/products";
-import Card from "../components/ui/Card";
-import Tag from "../components/ui/Tag";
-import Btn from "../components/ui/Btn";
-import PosterTile from "../components/art/PosterTile";
+import { SIZES } from "../../data/products";
+import Card from "../../components/ui/Card/Card";
+import Tag from "../../components/ui/Tag";
+import Btn from "../../components/ui/Btn/Btn";
+import PosterTile from "../../components/art/PosterTile";
 import "./ProductDetail.css";
 
 /* ---------------- Product Detail ---------------- */

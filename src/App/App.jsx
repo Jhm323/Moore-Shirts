@@ -1,0 +1,48 @@
+import { useState } from "react";
+import { FONTS } from "../theme/tokens";
+import { useAuth } from "../hooks/useAuth";
+import { useLiked } from "../hooks/useLiked";
+import { useProfile } from "../hooks/useProfile";
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
+import Landing from "../pages/Landing";
+import Shop from "../pages/Shop/Shop";
+import OrderForm from "../pages/OrderForm";
+import AuthPanel from "../pages/AuthPanel";
+import ProfileModal from "../components/profile/ProfileModal";
+import "./App.css";
+
+export default function App() {
+  const [view, setView] = useState("landing");
+  const [presetDesignId, setPresetDesignId] = useState(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const auth = useAuth();
+  const { liked, toggleLike } = useLiked(auth.user);
+  const { profile, updateProfile } = useProfile(auth.user);
+
+  function goOrder(id) {
+    setPresetDesignId(id);
+    setView("order");
+  }
+
+  return (
+    <div className="app">
+      <style>{FONTS}</style>
+      <Header onLogoClick={() => setView("landing")} onShopClick={() => setView("shop")} user={auth.user} profile={profile} onAuthClick={() => setView("auth")} onProfileClick={() => setProfileOpen(true)} />
+      {view === "landing" && <Landing onOrder={goOrder} onShop={() => setView("shop")} />}
+      {view === "shop" && <Shop liked={liked} toggleLike={toggleLike} onOrder={goOrder} user={auth.user} onRequireSignIn={() => setView("auth")} />}
+      {view === "order" && <OrderForm initialDesignId={presetDesignId} onBack={() => setView("shop")} user={auth.user} />}
+      {view === "auth" && <AuthPanel auth={auth} onDone={() => setView("shop")} />}
+      {profileOpen && auth.user && (
+        <ProfileModal
+          user={auth.user}
+          profile={profile}
+          updateProfile={updateProfile}
+          onClose={() => setProfileOpen(false)}
+          onSignOut={() => { auth.signOut(); setProfileOpen(false); }}
+        />
+      )}
+      <Footer />
+    </div>
+  );
+}

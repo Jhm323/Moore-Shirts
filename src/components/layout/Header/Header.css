@@ -32,6 +32,18 @@
   opacity: 0.8;
 }
 
+.header__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.header__user-name {
+  font-weight: 600;
+  color: var(--color-leaf);
+}
+
 .header__signin {
   cursor: pointer;
   background: var(--color-leaf);
