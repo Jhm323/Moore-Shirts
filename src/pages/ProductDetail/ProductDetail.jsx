@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { SIZES } from "../../data/products";
+import { BASE_PRICE } from "../../data/pricing";
 import Card from "../../components/ui/Card";
 import Tag from "../../components/ui/Tag";
 import Btn from "../../components/ui/Btn";
@@ -21,7 +22,7 @@ export default function ProductDetail({ product, liked, toggleLike, onAdd, onBac
         <div>
           {product.tag && <Tag>{product.tag}</Tag>}
           <h1 className="product-detail__title">{product.name}</h1>
-          <div className="product-detail__price">${product.price}</div>
+          <div className="product-detail__price">${BASE_PRICE.toFixed(2)}</div>
           <p className="product-detail__blurb">{product.blurb} Screen-printed on heavyweight organic cotton, unisex fit.</p>
 
           <div className="product-detail__size-block">

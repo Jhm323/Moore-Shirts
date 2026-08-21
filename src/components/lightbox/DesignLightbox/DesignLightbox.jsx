@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { PRODUCTS } from "../../../data/products";
+import { BASE_PRICE } from "../../../data/pricing";
 import ShirtMockup from "../../art/ShirtMockup";
 import Btn from "../../ui/Btn";
 import "./DesignLightbox.css";
@@ -45,7 +46,7 @@ export default function DesignLightbox({ startId, onClose, onOrder }) {
       <div className="design-lightbox__card" onClick={(e) => e.stopPropagation()}>
         <ShirtMockup product={product} size={320} />
         <div className="design-lightbox__name">{product.name}</div>
-        <div className="design-lightbox__price">${product.price}</div>
+        <div className="design-lightbox__price">${BASE_PRICE.toFixed(2)}</div>
         <Btn variant="primary" onClick={() => onOrder(product.id)}>
           Order this design
         </Btn>

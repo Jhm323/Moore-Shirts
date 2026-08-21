@@ -1,3 +1,16 @@
 .shirt-mockup {
   display: block;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.shirt-mockup__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shirt-mockup__fallback {
+  width: 100%;
+  height: 100%;
 }

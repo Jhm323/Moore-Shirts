@@ -20,14 +20,16 @@ import React, { useState } from "react";
 
    BEFORE YOU DEPLOY THIS — edit the CONFIG block below:
    - STRIPE_PAYMENT_LINK: create a Payment Link in your Stripe
-     dashboard for a flat $20 charge (Products → Payment Links),
-     paste the URL here. Since every design is the same price,
-     one link covers everything; the $2 XXL surcharge is noted
+     dashboard for a flat charge matching BASE_PRICE in
+     src/data/pricing.js (Products → Payment Links), paste the URL
+     here. Since every design is the same price, one link covers
+     everything; the XXL surcharge (also in pricing.js) is noted
      to the customer but not auto-added — see note below.
 =========================================================== */
 
 
-import { PRODUCTS } from "../../data/products";
+import { PRODUCTS, SIZES } from "../../data/products";
+import { BASE_PRICE, SIZE_SURCHARGE } from "../../data/pricing";
 import ProductIcon from "../../components/art/ProductIcon";
 import { supabase } from "../../lib/supabase";
 import "./OrderForm.css";
@@ -35,12 +37,6 @@ import "./OrderForm.css";
 const CONFIG = {
   STRIPE_PAYMENT_LINK: import.meta.env.VITE_STRIPE_PAYMENT_LINK,
 };
-
-
-
-const BASE_PRICE = 20;
-const SIZE_SURCHARGE = { XXL: 2 };
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
 
 
@@ -130,7 +126,7 @@ export default function OrderForm({ initialDesignId, onBack, user }) {
         <h1 className="order-form__title">Order a shirt</h1>
         <p className="order-form__intro">
           Every shirt is printed to order once we receive your details and payment — no batches, no inventory.
-          Priced at cost: ${BASE_PRICE} standard sizes, ${BASE_PRICE + (SIZE_SURCHARGE.XXL || 0)} for XXL.
+          Priced at cost: ${BASE_PRICE.toFixed(2)} standard sizes, ${(BASE_PRICE + (SIZE_SURCHARGE.XXL || 0)).toFixed(2)} for XXL.
         </p>
 
         {status === "submitted" ? (
@@ -138,7 +134,7 @@ export default function OrderForm({ initialDesignId, onBack, user }) {
             <div className="order-form__check">{"✓"}</div>
             <h2 className="order-form__panel-title">Order details received</h2>
             <p className="order-form__panel-copy">
-              One step left — complete payment below (${price} for a {size} {design.name}). Once payment comes through
+              One step left — complete payment below (${price.toFixed(2)} for a {size} {design.name}). Once payment comes through
               we'll place your print order and email you tracking when it ships.
             </p>
             <a
@@ -223,7 +219,7 @@ export default function OrderForm({ initialDesignId, onBack, user }) {
                 <div className="order-form__summary-title">{design.name}, size {size}</div>
                 <div className="order-form__summary-sub">Printed to order, no markup</div>
               </div>
-              <div className="order-form__summary-price">${price}</div>
+              <div className="order-form__summary-price">${price.toFixed(2)}</div>
             </div>
 
             {errorMsg && <p className="order-form__error">{errorMsg}</p>}
