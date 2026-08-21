@@ -1,8 +1,34 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./ShirtMockup.css";
+
+// Map of every raw source image under products-raw, keyed by its full path,
+// to an async loader -- only images actually referenced by a rendered
+// product get bundled into dist, not the whole products-raw folder.
+const productImageLoaders = import.meta.glob("/src/assets/products-raw/**/*.{png,jpg,jpeg}");
 
 export default function ShirtMockup({ product, size = 320 }) {
   const clipId = `shirt-print-${product.id}`;
+  const [rawImageUrl, setRawImageUrl] = useState(null);
+
+  useEffect(() => {
+    if (!product.rawImage) {
+      setRawImageUrl(null);
+      return;
+    }
+    const loader = productImageLoaders[`/src/assets/products-raw/${product.rawImage}`];
+    if (!loader) {
+      setRawImageUrl(null);
+      return;
+    }
+    let cancelled = false;
+    loader().then((mod) => {
+      if (!cancelled) setRawImageUrl(mod.default);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [product.rawImage]);
+
   return (
     <svg viewBox="0 0 200 200" width={size} height={size} className="shirt-mockup">
       <path
@@ -22,7 +48,16 @@ export default function ShirtMockup({ product, size = 320 }) {
         <rect x="72" y="55" width="56" height="56" rx="4" />
       </clipPath>
       <g clipPath={`url(#${clipId})`}>
-        {product.image ? (
+        {rawImageUrl ? (
+          <image
+            href={rawImageUrl}
+            x="72"
+            y="55"
+            width="56"
+            height="56"
+            preserveAspectRatio="xMidYMid slice"
+          />
+        ) : product.image ? (
           <image
             href={product.image}
             x="72"
