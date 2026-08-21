@@ -1,12 +1,13 @@
 import React from "react";
 import Avatar from "../../ui/Avatar";
+import { SITE_TITLE } from "../../../data/site";
 import "./Header.css";
 
 export default function Header({ onLogoClick, onShopClick, user, profile, onAuthClick, onProfileClick }) {
   return (
     <header className="header">
       <div onClick={onLogoClick} className="header__logo">
-        Common Thread
+        {SITE_TITLE}
       </div>
       <nav className="header__nav">
         <span className="header__link" onClick={onShopClick}>Shop</span>

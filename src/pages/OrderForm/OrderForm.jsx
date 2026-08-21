@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 
 /* ===========================================================
-   COMMON THREAD — Order form (no storefront)
+   LOVE IT TSHIRTS — Order form (no storefront)
+   (keep this comment's name in sync with SITE_TITLE in src/data/site.js)
 
    HOW THIS WORKS
    1. Customer picks a design + size, fills in shipping info,
@@ -30,6 +31,7 @@ import React, { useState } from "react";
 
 import { PRODUCTS, SIZES } from "../../data/products";
 import { BASE_PRICE, SIZE_SURCHARGE } from "../../data/pricing";
+import { SITE_TITLE } from "../../data/site";
 import ProductIcon from "../../components/art/ProductIcon";
 import { supabase } from "../../lib/supabase";
 import "./OrderForm.css";
@@ -122,7 +124,7 @@ export default function OrderForm({ initialDesignId, onBack, user }) {
 
       <div className="order-form__body">
         <span onClick={onBack} className="order-form__back">← Back</span>
-        <div className="order-form__brand">Common Thread</div>
+        <div className="order-form__brand">{SITE_TITLE}</div>
         <h1 className="order-form__title">Order a shirt</h1>
         <p className="order-form__intro">
           Every shirt is printed to order once we receive your details and payment — no batches, no inventory.

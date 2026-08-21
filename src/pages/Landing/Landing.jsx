@@ -5,6 +5,7 @@ import Card from "../../components/ui/Card";
 import Tag from "../../components/ui/Tag";
 import Btn from "../../components/ui/Btn";
 import PosterTile from "../../components/art/PosterTile";
+import { SITE_INFO, SITE_PURPOSE } from "../../data/site";
 import "./Landing.css";
 
 export default function Landing({ onShop, onPreview }) {
@@ -16,10 +17,10 @@ export default function Landing({ onShop, onPreview }) {
             <Card className="landing__hero-card-inner card--overlay">
               <Tag>10% of every order funds a cause you pick</Tag>
               <h1 className="landing__hero-title">
-                Portraits of the wild,<br />worn with purpose.
+                {SITE_INFO}
               </h1>
               <p className="landing__hero-copy">
-                Painterly wildlife prints, printed to order. No batches, no inventory.
+                {SITE_PURPOSE}
               </p>
               <Btn variant="primary" onClick={onShop}>Shop the collection</Btn>
             </Card>
